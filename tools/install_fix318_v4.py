@@ -34,10 +34,8 @@ v4_hash = {
 old_manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
 names = {loc:(old_manifest['languages'][loc]['nativeName'], old_manifest['languages'][loc]['englishName']) for loc in locales}
 complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(encoding='utf-8'))
-v3_parts = sorted((root/'.language-pack-patch-v3').glob('chunk-*.txt'), key=lambda p: int(p.stem.split('-')[-1]))
-encoded3 = ''.join(p.read_text(encoding='ascii').strip() for p in v3_parts)
-assert len(v3_parts) == int(complete['parts'])
-assert hashlib.sha256(encoded3.encode()).hexdigest() == complete['sha256']
+encoded3 = (root/'tools/v3_base_delta.b64').read_text(encoding='ascii').strip()
+assert hashlib.sha256(encoded3.encode()).hexdigest() == '1b8c17c89ed711616e1b0dc0342a1b517f3f8ae722ab3d568721c7effea4a45a'
 delta3 = json.loads(zlib.decompress(base64.b64decode(encoded3)).decode('utf-8'))
 def canonical_pack(pack, version):
     pack['version'] = version
@@ -94,4 +92,5 @@ manifest = {'schemaVersion':1,'defaultLocale':'en','minAppVersionCode':56,'langu
 shutil.rmtree(root/'.fix318-v4-delta')
 shutil.rmtree(root/'.language-pack-patch-v3', ignore_errors=True)
 shutil.rmtree(root/'bundles', ignore_errors=True)
+(root/'tools/v3_base_delta.b64').unlink(missing_ok=True)
 print('Installed 12 direct v4 packs with 2329 keys each')
