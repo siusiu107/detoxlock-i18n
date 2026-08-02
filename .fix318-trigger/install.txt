@@ -1,1 +1,1 @@
-Install direct v4 packs retry 3 — numeric chunk order fixed
+Install direct v4 packs retry 4 — standalone verified v3 delta
