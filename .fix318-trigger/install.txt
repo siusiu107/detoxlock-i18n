@@ -1,1 +1,1 @@
-Install verified direct v4 packs — corrected 8+8 chunk chain
+Install verified direct v4 packs — semantic hash validation
