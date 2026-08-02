@@ -1,1 +1,1 @@
-Install final direct v4 packs — verified v2-to-v4 delta, 12 languages, 2329 keys
+Install final direct v4 packs — base-to-v2 plus v2-to-v4 verified chain
