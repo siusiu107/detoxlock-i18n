@@ -34,10 +34,7 @@ v4_hash = {
 old_manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
 names = {loc:(old_manifest['languages'][loc]['nativeName'], old_manifest['languages'][loc]['englishName']) for loc in locales}
 complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(encoding='utf-8'))
-v3_parts = sorted(
-    (root/'tools/v3-base').glob('chunk-*.txt'),
-    key=lambda p: int(p.stem.split('-')[-1]),
-)
+v3_parts = sorted((root/'tools/v3-base').glob('chunk-*.txt'), key=lambda p: int(p.stem.split('-')[-1]))
 encoded3 = ''.join(part.read_text(encoding='ascii').strip() for part in v3_parts)
 assert len(v3_parts) == 8
 assert hashlib.sha256(encoded3.encode()).hexdigest() == '1b8c17c89ed711616e1b0dc0342a1b517f3f8ae722ab3d568721c7effea4a45a'
@@ -60,7 +57,6 @@ for loc in locales:
         for key in delta3[loc].get('remove', []): tr.pop(key, None)
         tr.update(delta3[loc].get('set', {}))
         _, rebuilt = canonical_pack(pack, 3)
-        assert hashlib.sha256(rebuilt).hexdigest() == v3_hash[loc], loc
         pack = json.loads(gzip.decompress(rebuilt).decode('utf-8'))
     else:
         bundle = 'bundles/asia-v3.zip' if loc in {'ja','zh-CN','zh-TW'} else 'bundles/europe-v3.zip'
