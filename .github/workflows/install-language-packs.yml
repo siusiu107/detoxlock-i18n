@@ -15,13 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract uploaded language packs
+        id: extract
         shell: bash
         run: |
           set -euo pipefail
-          test -f DetoxLock_i18n_GitHub_upload_payload.zip
+          if [[ ! -f DetoxLock_i18n_GitHub_upload_payload.zip ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No upload payload was found."
+            exit 0
+          fi
           unzip -o DetoxLock_i18n_GitHub_upload_payload.zip -d .
           rm DetoxLock_i18n_GitHub_upload_payload.zip
+          echo "changed=true" >> "$GITHUB_OUTPUT"
       - name: Commit installed files
+        if: steps.extract.outputs.changed == 'true'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
