@@ -1,1 +1,1 @@
-Install verified direct v4 packs — publish runtime gzip hashes
+Install verified direct v4 packs — all 8+8 chunks present
