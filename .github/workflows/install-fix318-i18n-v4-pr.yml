@@ -1,28 +1,82 @@
-name: Install DetoxLock FIX318 v4 via PR
+name: Publish DetoxLock direct language packs v4
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - '.fix318-trigger/**'
+      - '.fix318-direct/**'
 
 permissions:
   contents: write
 
+concurrency:
+  group: publish-detoxlock-i18n-v4-direct
+  cancel-in-progress: false
+
 jobs:
-  install:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-      - name: Install and verify direct language packs
-        run: python3 tools/install_fix318_v4.py
-      - name: Commit v4 language packs
+
+      - name: Reconstruct and verify completed v4 payload
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_SHA"
+          mkdir -p /tmp/fix318-v4
+          git ls-tree -r --name-only "$HEAD_SHA" .fix318-direct/parts/ | sort | while read -r path; do
+            git show "$HEAD_SHA:$path"
+          done > /tmp/fix318-v4/payload.b64
+          tr -d '\r\n ' < /tmp/fix318-v4/payload.b64 | base64 -d > /tmp/fix318-v4/payload.zip
+          echo 'ef96b57750f83e201c6e35475f59b7b8d3db3a0e0f147d1c7201fcfe234d65ee  /tmp/fix318-v4/payload.zip' | sha256sum -c -
+          unzip -t /tmp/fix318-v4/payload.zip >/dev/null
+          unzip -q /tmp/fix318-v4/payload.zip -d /tmp/fix318-v4/unpacked
+          python3 - <<'PY'
+          import gzip, hashlib, json, pathlib
+          root = pathlib.Path('/tmp/fix318-v4/unpacked')
+          manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
+          expected = {'en','ko','ja','zh-CN','zh-TW','es','fr','de','pt-BR','id','vi','th'}
+          assert manifest['schemaVersion'] == 1
+          assert manifest['defaultLocale'] == 'en'
+          assert set(manifest['languages']) == expected
+          all_keys = None
+          for locale, meta in manifest['languages'].items():
+              assert meta['version'] == 4, (locale, meta['version'])
+              assert meta['translationCount'] == 2329, (locale, meta['translationCount'])
+              data = (root/meta['file']).read_bytes()
+              assert len(data) == meta['size'], locale
+              assert hashlib.sha256(data).hexdigest() == meta['sha256'], locale
+              pack = json.loads(gzip.decompress(data).decode('utf-8'))
+              assert pack['locale'] == locale, locale
+              assert pack['version'] == 4, locale
+              translations = pack['translations']
+              assert len(translations) == 2329, locale
+              assert all(str(v).strip() for v in translations.values()), locale
+              keys = set(translations)
+              all_keys = keys if all_keys is None else all_keys
+              assert keys == all_keys, locale
+          print('Verified 12 direct v4 packs, 2329 keys each')
+          PY
+
+      - name: Publish v4 files to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf locales
+          mkdir -p locales
+          cp /tmp/fix318-v4/unpacked/manifest.json manifest.json
+          cp /tmp/fix318-v4/unpacked/locales/*.json.gz locales/
+          rm -rf bundles .language-pack-patch-v3 .fix318-v4-delta tools/v3-base
+          rm -f tools/v3_base_delta.b64
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Publish DetoxLock FIX318 direct language packs v4'
+          git commit -m 'Publish DetoxLock direct language packs v4'
           git push origin HEAD:main
