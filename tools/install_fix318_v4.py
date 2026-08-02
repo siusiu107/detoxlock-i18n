@@ -34,7 +34,13 @@ v4_hash = {
 old_manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
 names = {loc:(old_manifest['languages'][loc]['nativeName'], old_manifest['languages'][loc]['englishName']) for loc in locales}
 complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(encoding='utf-8'))
-encoded3 = (root/'tools/v3_base_delta.b64').read_text(encoding='ascii').strip()
+v3_parts = sorted(
+    (root/'tools/v3-base').glob('chunk-*.txt'),
+    key=lambda p: int(p.stem.split('-')[-1]),
+)
+encoded3 = ''.join(part.read_text(encoding='ascii').strip() for part in v3_parts)
+assert len(v3_parts) == 8
+assert hashlib.sha256(encoded3.encode()).hexdigest() == '1b8c17c89ed711616e1b0dc0342a1b517f3f8ae722ab3d568721c7effea4a45a'
 delta3 = json.loads(zlib.decompress(base64.b64decode(encoded3)).decode('utf-8'))
 assert set(delta3) == set(locales)
 def canonical_pack(pack, version):
@@ -64,7 +70,7 @@ for loc in locales:
         assert hashlib.sha256(candidate).hexdigest() == v3_hash[loc], loc
         pack = json.loads(gzip.decompress(candidate).decode('utf-8'))
     v3packs[loc] = pack
-v4_parts = sorted((root/'.fix318-v4-delta').glob('chunk-*.txt'), key=lambda p: int(p.stem.split('-')[-1]))
+v4_parts = sorted((root/'.fix318-v4-delta').glob('chunk-*.txt'))
 encoded4 = ''.join(p.read_text(encoding='ascii').strip() for p in v4_parts)
 assert len(v4_parts) == 9
 assert hashlib.sha256(encoded4.encode()).hexdigest() == 'f75d48e10e783b64451b6497587d1d5f334c9bdc43f491b848d5a8b735a5b7d0'
@@ -92,5 +98,6 @@ manifest = {'schemaVersion':1,'defaultLocale':'en','minAppVersionCode':56,'langu
 shutil.rmtree(root/'.fix318-v4-delta')
 shutil.rmtree(root/'.language-pack-patch-v3', ignore_errors=True)
 shutil.rmtree(root/'bundles', ignore_errors=True)
+shutil.rmtree(root/'tools/v3-base', ignore_errors=True)
 (root/'tools/v3_base_delta.b64').unlink(missing_ok=True)
 print('Installed 12 direct v4 packs with 2329 keys each')
