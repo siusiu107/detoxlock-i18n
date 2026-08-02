@@ -1,1 +1,1 @@
-Install direct v4 packs retry 6 — verified eight-part v3 base
+Install final direct v4 packs — verified v2-to-v4 delta, 12 languages, 2329 keys
