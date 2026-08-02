@@ -7,6 +7,4 @@ This public repository contains only translation packs downloaded by DetoxLock. 
 
 The app verifies every downloaded pack against the SHA-256 value in the manifest and keeps the last valid local copy for offline use.
 
-## Initial installation
-
-Upload `DetoxLock_i18n_GitHub_upload_payload.zip` to the repository root. The included GitHub Actions workflow extracts the language packs, removes the uploaded ZIP, and commits the final files automatically.
+Language packs are gzip-compressed. The app verifies the compressed file hash before decompressing it.
