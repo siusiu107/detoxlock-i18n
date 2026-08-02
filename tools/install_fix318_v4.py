@@ -34,9 +34,10 @@ v4_hash = {
 old_manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
 names = {loc:(old_manifest['languages'][loc]['nativeName'], old_manifest['languages'][loc]['englishName']) for loc in locales}
 complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(encoding='utf-8'))
-v3_parts = sorted((root/'.language-pack-patch-v3').glob('chunk-*.txt'))
+v3_parts = sorted((root/'.language-pack-patch-v3').glob('chunk-*.txt'), key=lambda p: int(p.stem.split('-')[-1]))
 encoded3 = ''.join(p.read_text(encoding='ascii').strip() for p in v3_parts)
 assert len(v3_parts) == int(complete['parts'])
+assert hashlib.sha256(encoded3.encode()).hexdigest() == complete['sha256']
 delta3 = json.loads(zlib.decompress(base64.b64decode(encoded3)).decode('utf-8'))
 def canonical_pack(pack, version):
     pack['version'] = version
@@ -65,7 +66,7 @@ for loc in locales:
         assert hashlib.sha256(candidate).hexdigest() == v3_hash[loc], loc
         pack = json.loads(gzip.decompress(candidate).decode('utf-8'))
     v3packs[loc] = pack
-v4_parts = sorted((root/'.fix318-v4-delta').glob('chunk-*.txt'))
+v4_parts = sorted((root/'.fix318-v4-delta').glob('chunk-*.txt'), key=lambda p: int(p.stem.split('-')[-1]))
 encoded4 = ''.join(p.read_text(encoding='ascii').strip() for p in v4_parts)
 assert len(v4_parts) == 9
 assert hashlib.sha256(encoded4.encode()).hexdigest() == 'f75d48e10e783b64451b6497587d1d5f334c9bdc43f491b848d5a8b735a5b7d0'
