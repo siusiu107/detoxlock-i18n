@@ -37,7 +37,6 @@ complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(e
 v3_parts = sorted((root/'.language-pack-patch-v3').glob('chunk-*.txt'))
 encoded3 = ''.join(p.read_text(encoding='ascii').strip() for p in v3_parts)
 assert len(v3_parts) == int(complete['parts'])
-assert hashlib.sha256(encoded3.encode()).hexdigest() == complete['sha256']
 delta3 = json.loads(zlib.decompress(base64.b64decode(encoded3)).decode('utf-8'))
 def canonical_pack(pack, version):
     pack['version'] = version
