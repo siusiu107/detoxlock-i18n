@@ -1,1 +1,1 @@
-Install direct v4 packs retry 5 — final hash validation only
+Install direct v4 packs retry 6 — verified eight-part v3 base
