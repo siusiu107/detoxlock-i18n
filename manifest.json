@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "defaultLocale": "en",
+  "minAppVersionCode": 56,
+  "languages": {
+    "en": {"nativeName":"English","englishName":"English","version":1,"file":"locales/en.json.gz","sha256":"39a29d09c13a1dcc6a357b5a8582975574bb4be87516d25bb1b79204bb0a76bf","size":59096,"translationCount":2116,"encoding":"gzip","uncompressedSize":170492},
+    "ko": {"nativeName":"한국어","englishName":"Korean","version":1,"file":"locales/ko.json.gz","sha256":"3e6abd589d61147c8f278dfd955312b6d25ba1f6544c7b1228c05ec5005edee7","size":60073,"translationCount":2116,"encoding":"gzip","uncompressedSize":182099},
+    "ja": {"nativeName":"日本語","englishName":"Japanese","version":1,"file":"locales/ja.json.gz","sha256":"e8e96abd972214a57709ee0f41d2f7e1b62488960bb5001fbaf0b7ae6c383388","size":58839,"translationCount":1987,"encoding":"gzip","uncompressedSize":192191},
+    "zh-CN": {"nativeName":"简体中文","englishName":"Simplified Chinese","version":1,"file":"locales/zh-CN.json.gz","sha256":"ec542a39c86de8941d147b99959b5e6502798a3f9a307f270f59047f452b5847","size":56179,"translationCount":1987,"encoding":"gzip","uncompressedSize":153536},
+    "zh-TW": {"nativeName":"繁體中文","englishName":"Traditional Chinese","version":1,"file":"locales/zh-TW.json.gz","sha256":"7c0d68a2533f53e787285cc223a9fd58050ced92aef3998cf573fc7941b0f29c","size":56603,"translationCount":1987,"encoding":"gzip","uncompressedSize":157530},
+    "es": {"nativeName":"Español","englishName":"Spanish","version":1,"file":"locales/es.json.gz","sha256":"d7bc47fde8556de935f8fabf0da8cbcb78d482d82e5e62c5fed7f2e9afb3ac4b","size":59535,"translationCount":1987,"encoding":"gzip","uncompressedSize":182160},
+    "fr": {"nativeName":"Français","englishName":"French","version":1,"file":"locales/fr.json.gz","sha256":"5acd23e5b494c696ffa23004197a846711fb3eaf26dd722b97305380496a3e94","size":62185,"translationCount":1987,"encoding":"gzip","uncompressedSize":200929},
+    "de": {"nativeName":"Deutsch","englishName":"German","version":1,"file":"locales/de.json.gz","sha256":"64bad319a4a122bc1217685797e7cc56df039add025966e6706f0f08b207890d","size":61586,"translationCount":1987,"encoding":"gzip","uncompressedSize":182495},
+    "pt-BR": {"nativeName":"Português (Brasil)","englishName":"Brazilian Portuguese","version":1,"file":"locales/pt-BR.json.gz","sha256":"914a8177b1df88d8c73c8528075c4679969d1d9cc077e84ce1c72aa6b54f0609","size":59328,"translationCount":1987,"encoding":"gzip","uncompressedSize":181029},
+    "id": {"nativeName":"Bahasa Indonesia","englishName":"Indonesian","version":1,"file":"locales/id.json.gz","sha256":"5398f73659098cb65275f0cc5fcf411096f907e998d02dd49bab173f28fca408","size":55888,"translationCount":1987,"encoding":"gzip","uncompressedSize":173169},
+    "vi": {"nativeName":"Tiếng Việt","englishName":"Vietnamese","version":1,"file":"locales/vi.json.gz","sha256":"80a1d8a77b187b12366c0b079b333f9f9941054d5c67fc1bd7e94b39504deee4","size":58401,"translationCount":1987,"encoding":"gzip","uncompressedSize":200586},
+    "th": {"nativeName":"ไทย","englishName":"Thai","version":1,"file":"locales/th.json.gz","sha256":"a96c3dcce724121dfa1e209a8efe6a7689e9711c259d245a47513a96cf40745f","size":64778,"translationCount":1987,"encoding":"gzip","uncompressedSize":313032}
+  }
+}
