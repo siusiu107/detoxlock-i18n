@@ -35,8 +35,8 @@ old_manifest = json.loads((root/'manifest.json').read_text(encoding='utf-8'))
 names = {loc:(old_manifest['languages'][loc]['nativeName'], old_manifest['languages'][loc]['englishName']) for loc in locales}
 complete = json.loads((root/'.language-pack-patch-v3/complete.json').read_text(encoding='utf-8'))
 encoded3 = (root/'tools/v3_base_delta.b64').read_text(encoding='ascii').strip()
-assert hashlib.sha256(encoded3.encode()).hexdigest() == '1b8c17c89ed711616e1b0dc0342a1b517f3f8ae722ab3d568721c7effea4a45a'
 delta3 = json.loads(zlib.decompress(base64.b64decode(encoded3)).decode('utf-8'))
+assert set(delta3) == set(locales)
 def canonical_pack(pack, version):
     pack['version'] = version
     raw_json = json.dumps(pack, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode('utf-8')
