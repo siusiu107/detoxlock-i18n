@@ -19,9 +19,13 @@ v4_hash = {
 }
 
 def load_delta(directory, count, expected_sha):
-    parts = sorted((root/directory).glob('chunk-*.txt'), key=lambda p:int(p.stem.split('-')[-1]))
-    assert len(parts) == count, (directory, len(parts))
-    encoded = ''.join(p.read_text(encoding='ascii').strip() for p in parts)
+    direct = root/directory/'full.b64'
+    if direct.exists():
+        encoded = direct.read_text(encoding='ascii').strip()
+    else:
+        parts = sorted((root/directory).glob('chunk-*.txt'), key=lambda p:int(p.stem.split('-')[-1]))
+        assert len(parts) == count, (directory, len(parts))
+        encoded = ''.join(p.read_text(encoding='ascii').strip() for p in parts)
     assert hashlib.sha256(encoded.encode()).hexdigest() == expected_sha, directory
     value = json.loads(zlib.decompress(base64.b64decode(encoded)).decode('utf-8'))
     assert set(value) == set(locales), directory
@@ -65,7 +69,7 @@ for loc in locales:
 
 manifest = {'schemaVersion':1,'defaultLocale':'en','minAppVersionCode':56,'languages':out}
 (root/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
-for p in ['bundles','.language-pack-patch-v3','.fix318-v4-delta','.fix318-direct-delta','.fix318-base-v2','tools/v3-base']:
+for p in ['bundles','.language-pack-patch-v3','.fix318-v4-delta','.fix318-direct-delta','.fix318-base-v2','.fix318-direct-delta','tools/v3-base']:
     shutil.rmtree(root/p,ignore_errors=True)
 (root/'tools/v3_base_delta.b64').unlink(missing_ok=True)
 print('Verified and published 12 direct v4 packs with 2329 keys each')
