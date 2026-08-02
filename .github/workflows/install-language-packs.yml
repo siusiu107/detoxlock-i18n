@@ -4,29 +4,74 @@ on:
   push:
     paths:
       - DetoxLock_i18n_GitHub_upload_payload.zip
+      - .language-pack-upload/**
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: install-detoxlock-language-packs
+  cancel-in-progress: false
 
 jobs:
   install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Extract uploaded language packs
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and extract uploaded language packs
         id: extract
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! -f DetoxLock_i18n_GitHub_upload_payload.zip ]]; then
+          PAYLOAD="DetoxLock_i18n_GitHub_upload_payload.zip"
+
+          if [[ ! -f "$PAYLOAD" ]] && compgen -G '.language-pack-upload/part-*' > /dev/null; then
+            mapfile -t PARTS < <(find .language-pack-upload -maxdepth 1 -type f -name 'part-*' | sort)
+            cat "${PARTS[@]}" > "$PAYLOAD"
+          fi
+
+          if [[ ! -f "$PAYLOAD" ]]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "No upload payload was found."
+            echo "No complete upload payload was found."
             exit 0
           fi
-          unzip -o DetoxLock_i18n_GitHub_upload_payload.zip -d .
-          rm DetoxLock_i18n_GitHub_upload_payload.zip
+
+          unzip -t "$PAYLOAD"
+          unzip -o "$PAYLOAD" -d .
+          rm -f "$PAYLOAD"
+          rm -rf .language-pack-upload
           echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version 3 packs
+        if: steps.extract.outputs.changed == 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import gzip, hashlib, json, pathlib
+          root = pathlib.Path('.')
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          assert manifest['schemaVersion'] == 1
+          languages = manifest['languages']
+          assert len(languages) == 12
+          key_sets = []
+          for locale, meta in languages.items():
+              assert int(meta['version']) >= 3, (locale, meta['version'])
+              path = root / meta['file']
+              raw = path.read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == meta['sha256'], locale
+              assert len(raw) == int(meta['size']), locale
+              data = json.loads(gzip.decompress(raw).decode('utf-8'))
+              translations = data.get('translations', data)
+              assert len(translations) == int(meta['translationCount']), locale
+              key_sets.append(set(translations))
+          assert all(keys == key_sets[0] for keys in key_sets[1:])
+          print(f"Validated {len(languages)} languages and {len(key_sets[0])} keys")
+          PY
+
       - name: Commit installed files
         if: steps.extract.outputs.changed == 'true'
         shell: bash
@@ -37,5 +82,5 @@ jobs:
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Install DetoxLock language packs [skip ci]"
+          git commit -m "Install DetoxLock language packs v3 [skip ci]"
           git push
