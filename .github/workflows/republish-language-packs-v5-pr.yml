@@ -48,6 +48,10 @@ jobs:
           for tag, translations in packs.items():
               assert set(translations) == keys, (tag, 'key set')
               for key, value in translations.items():
+                  # hp_* entries are localized regular-expression source patterns,
+                  # so their capture syntax legitimately differs by language.
+                  if '.hp_' in key:
+                      continue
                   assert sorted(token_re.findall(value)) == source_tokens[key], (tag, key, value)
 
           for tag, meta in manifest['languages'].items():
