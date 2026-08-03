@@ -1,0 +1,202 @@
+name: Repair FIX324 UI translations v6
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.fix324-i18n-trigger/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix324-i18n-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-verify-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Repair reported UI translations and publish v6
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+
+          APP_NAMES = {
+              'en': 'DetoxLock', 'ko': '디톡스락', 'ja': 'デトックスロック',
+              'zh-CN': '数字排毒锁', 'zh-TW': '數位戒癮鎖',
+              'es': 'Bloqueo Detox', 'fr': 'Verrou Détox', 'de': 'Detox-Sperre',
+              'pt-BR': 'Bloqueio Detox', 'id': 'Kunci Detoks',
+              'vi': 'Khóa Cai Nghiện Số', 'th': 'ล็อกดีท็อกซ์',
+          }
+          TITLES = {
+              'en': 'Start lock?', 'ko': '잠금을 시작할까요?', 'ja': 'ロックを開始しますか？',
+              'zh-CN': '开始锁定？', 'zh-TW': '開始鎖定？',
+              'es': '¿Iniciar el bloqueo?', 'fr': 'Démarrer le verrouillage ?',
+              'de': 'Sperre starten?', 'pt-BR': 'Iniciar o bloqueio?',
+              'id': 'Mulai penguncian?', 'vi': 'Bắt đầu khóa?', 'th': 'เริ่มล็อกไหม',
+          }
+          MESSAGES = {
+              'en': 'Locking starts immediately for the selected duration. Start now?',
+              'ko': '선택한 시간 동안 잠금이 바로 적용돼요. 지금 시작할까요?',
+              'ja': '選択した時間ですぐにロックが始まります。今すぐ開始しますか？',
+              'zh-CN': '锁定会立即开始，并持续所选时长。现在开始吗？',
+              'zh-TW': '鎖定會立即開始，並持續所選時間。現在開始嗎？',
+              'es': 'El bloqueo comenzará de inmediato durante el tiempo seleccionado. ¿Empezar ahora?',
+              'fr': 'Le verrouillage commence immédiatement pour la durée sélectionnée. Démarrer maintenant ?',
+              'de': 'Die Sperre beginnt sofort für die ausgewählte Dauer. Jetzt starten?',
+              'pt-BR': 'O bloqueio começa imediatamente pelo período selecionado. Iniciar agora?',
+              'id': 'Penguncian akan langsung dimulai selama durasi yang dipilih. Mulai sekarang?',
+              'vi': 'Chế độ khóa sẽ bắt đầu ngay trong khoảng thời gian đã chọn. Bắt đầu ngay?',
+              'th': 'การล็อกจะเริ่มทันทีตามระยะเวลาที่เลือก เริ่มตอนนี้ไหม',
+          }
+          POSITIVE = {
+              'en': 'Start lock', 'ko': '잠금 시작', 'ja': 'ロック開始',
+              'zh-CN': '开始锁定', 'zh-TW': '開始鎖定',
+              'es': 'Iniciar bloqueo', 'fr': 'Démarrer', 'de': 'Sperre starten',
+              'pt-BR': 'Iniciar bloqueio', 'id': 'Mulai penguncian',
+              'vi': 'Bắt đầu khóa', 'th': 'เริ่มล็อก',
+          }
+          NEGATIVE = {
+              'en': 'Cancel', 'ko': '취소', 'ja': 'キャンセル',
+              'zh-CN': '取消', 'zh-TW': '取消', 'es': 'Cancelar', 'fr': 'Annuler',
+              'de': 'Abbrechen', 'pt-BR': 'Cancelar', 'id': 'Batal',
+              'vi': 'Hủy', 'th': 'ยกเลิก',
+          }
+          STEP_TITLES = {
+              'en': '1. Lock tab', 'ko': '1. 잠금 탭', 'ja': '1. ロックタブ',
+              'zh-CN': '1. 锁定标签页', 'zh-TW': '1. 鎖定分頁',
+              'es': '1. Pestaña Bloqueo', 'fr': '1. Onglet Verrouillage',
+              'de': '1. Sperren-Tab', 'pt-BR': '1. Aba Bloqueio',
+              'id': '1. Tab Penguncian', 'vi': '1. Thẻ Khóa', 'th': '1. แท็บล็อก',
+          }
+          STEP_BODIES = {
+              'en': 'This is the main screen. Use this tab most often when you want to start a quick lock.',
+              'ko': '여기가 가장 기본 화면이에요. 빠르게 잠그고 싶을 때 가장 자주 쓰는 탭이에요.',
+              'ja': 'ここが最も基本的な画面です。すばやくロックしたいときに最もよく使うタブです。',
+              'zh-CN': '这是最基本的页面。想快速开始锁定时，最常使用这个标签页。',
+              'zh-TW': '這是最基本的頁面。想快速開始鎖定時，最常使用這個分頁。',
+              'es': 'Esta es la pantalla principal. Es la pestaña que más usarás cuando quieras iniciar un bloqueo rápido.',
+              'fr': 'C’est l’écran principal. C’est l’onglet que vous utiliserez le plus souvent pour lancer rapidement un verrouillage.',
+              'de': 'Dies ist der Hauptbildschirm. Diesen Tab verwendest du am häufigsten, wenn du schnell eine Sperre starten möchtest.',
+              'pt-BR': 'Esta é a tela principal. É a aba que você mais usará para iniciar um bloqueio rápido.',
+              'id': 'Ini adalah layar utama. Tab ini paling sering digunakan saat Anda ingin memulai penguncian dengan cepat.',
+              'vi': 'Đây là màn hình chính. Đây là thẻ bạn sẽ dùng thường xuyên nhất khi muốn bắt đầu khóa nhanh.',
+              'th': 'นี่คือหน้าหลัก เป็นแท็บที่ใช้บ่อยที่สุดเมื่อต้องการเริ่มล็อกอย่างรวดเร็ว',
+          }
+          GUIDES = {
+              'en': '\n\nTap the highlighted area or use the button below to move to the next step.',
+              'ko': '\n\n밝게 표시된 곳을 누르거나 아래 버튼으로 다음 단계로 이동할 수 있어요.',
+              'ja': '\n\n明るく表示された場所をタップするか、下のボタンで次のステップへ進めます。',
+              'zh-CN': '\n\n点击高亮区域，或使用下方按钮进入下一步。',
+              'zh-TW': '\n\n點選醒目顯示的區域，或使用下方按鈕前往下一步。',
+              'es': '\n\nToca el área resaltada o usa el botón de abajo para ir al siguiente paso.',
+              'fr': '\n\nTouchez la zone mise en évidence ou utilisez le bouton ci-dessous pour passer à l’étape suivante.',
+              'de': '\n\nTippe auf den hervorgehobenen Bereich oder nutze die Schaltfläche unten, um zum nächsten Schritt zu wechseln.',
+              'pt-BR': '\n\nToque na área destacada ou use o botão abaixo para avançar para a próxima etapa.',
+              'id': '\n\nKetuk area yang disorot atau gunakan tombol di bawah untuk melanjutkan ke langkah berikutnya.',
+              'vi': '\n\nChạm vào vùng được làm nổi bật hoặc dùng nút bên dưới để chuyển sang bước tiếp theo.',
+              'th': '\n\nแตะบริเวณที่ไฮไลต์ หรือใช้ปุ่มด้านล่างเพื่อไปยังขั้นตอนถัดไป',
+          }
+
+          manifest_path = Path('manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          target_version = 6
+          packs = {}
+          for tag, meta in manifest['languages'].items():
+              obj = json.loads(gzip.decompress(Path(meta['file']).read_bytes()).decode('utf-8'))
+              packs[tag] = obj['translations']
+
+          patch_keys = {
+              'res.app_name': APP_NAMES,
+              'res.quick_lock_confirm_title': TITLES,
+              'res.quick_lock_confirm_message': MESSAGES,
+              'res.quick_lock_confirm_positive': POSITIVE,
+              'res.quick_lock_confirm_negative': NEGATIVE,
+              'hc.hc_9f4f21faf495d274951e': STEP_TITLES,
+              'hc.hc_8a69cea8d5387aa76d21': STEP_BODIES,
+              'hc.fxe_a5c9ecf898e53020abf9': GUIDES,
+          }
+          for key, values in patch_keys.items():
+              assert set(values) == set(packs), (key, set(packs) - set(values))
+              for tag in packs:
+                  packs[tag][key] = values[tag]
+
+          reference = set(packs['en'])
+          for tag, translations in packs.items():
+              assert set(translations) == reference, (tag, 'key set mismatch')
+              assert len(translations) == 2329, (tag, len(translations))
+              assert all(isinstance(v, str) and v.strip() for v in translations.values()), tag
+
+          for tag, meta in manifest['languages'].items():
+              payload = {
+                  'schemaVersion': 1,
+                  'locale': tag,
+                  'version': target_version,
+                  'translations': packs[tag],
+              }
+              decoded = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+              encoded = gzip.compress(decoded, compresslevel=9, mtime=0)
+              Path(meta['file']).write_bytes(encoded)
+              meta.update({
+                  'version': target_version,
+                  'sha256': hashlib.sha256(encoded).hexdigest(),
+                  'size': len(encoded),
+                  'translationCount': len(packs[tag]),
+                  'encoding': 'gzip',
+                  'uncompressedSize': len(decoded),
+              })
+
+          manifest['minAppVersionCode'] = 56
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+          print('OK: repaired 8 reported UI keys across 12 v6 packs')
+          PY
+
+      - name: Verify v6 packs and reported Traditional Chinese strings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          expected_tw = {
+              'res.app_name': '數位戒癮鎖',
+              'res.quick_lock_confirm_title': '開始鎖定？',
+              'res.quick_lock_confirm_message': '鎖定會立即開始，並持續所選時間。現在開始嗎？',
+              'hc.hc_8a69cea8d5387aa76d21': '這是最基本的頁面。想快速開始鎖定時，最常使用這個分頁。',
+          }
+          for tag, meta in manifest['languages'].items():
+              raw = Path(meta['file']).read_bytes()
+              decoded = gzip.decompress(raw)
+              obj = json.loads(decoded.decode('utf-8'))
+              assert meta['version'] == obj['version'] == 6, tag
+              assert obj['locale'] == tag
+              assert hashlib.sha256(raw).hexdigest() == meta['sha256']
+              assert len(raw) == meta['size']
+              assert len(decoded) == meta['uncompressedSize']
+              assert len(obj['translations']) == meta['translationCount'] == 2329
+              if tag == 'zh-TW':
+                  for key, value in expected_tw.items():
+                      assert obj['translations'][key] == value, (key, obj['translations'][key])
+          print('OK: 12 v6 packs verified; Traditional Chinese screenshot strings repaired')
+          PY
+
+      - name: Commit repaired packs to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix324-i18n-trigger
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A manifest.json locales .fix324-i18n-trigger
+          git commit -m 'Repair reported UI translations and publish v6 [skip ci]'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
