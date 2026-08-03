@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'language-upload/legal-html.zip.b64'
+      - 'language-upload/READY'
   workflow_dispatch:
 
 permissions:
@@ -26,8 +26,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s language-upload/legal-html.zip.b64
-          base64 --decode language-upload/legal-html.zip.b64 > /tmp/legal-html.zip
+          test -s language-upload/READY
+          mapfile -t PARTS < <(find language-upload -maxdepth 1 -type f -name 'part-*' | sort)
+          test "${#PARTS[@]}" -eq 13
+          cat "${PARTS[@]}" > /tmp/legal-html.zip.b64
+          base64 --decode /tmp/legal-html.zip.b64 > /tmp/legal-html.zip
           echo '9210b4d463d4197f3ada9940e9a38b0a67e60daa5f563b548f1629e43e27a2b1  /tmp/legal-html.zip' | sha256sum -c -
           unzip -t /tmp/legal-html.zip
 
@@ -51,6 +54,8 @@ jobs:
               tag = name.removesuffix('.html').split('.')[-1]
               assert tag in allowed, name
               assert path.stat().st_size > 1000, name
+              text = path.read_text(encoding='utf-8')
+              assert '<html' in text.lower(), name
           print('Verified', len(files), 'external legal documents')
           PY
 
@@ -58,8 +63,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f language-upload/legal-html.zip.b64
-          rmdir language-upload 2>/dev/null || true
+          rm -rf language-upload
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A legal/html language-upload
