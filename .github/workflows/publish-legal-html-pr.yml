@@ -1,0 +1,45 @@
+name: Publish legal HTML PR
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.legal-publish-pr-trigger/**'
+
+permissions:
+  contents: write
+
+jobs:
+  render-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Render verified external legal documents
+        run: python3 .github/scripts/render_verified_legal_html.py
+
+      - name: Verify language/document matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find legal/html -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 20
+          for tag in ja zh-CN zh-TW es fr de pt-BR id vi th; do
+            test -s "legal/html/privacy_policy.$tag.html"
+            test -s "legal/html/terms_of_service.$tag.html"
+          done
+          ! grep -RInE '[가-힣ㄱ-ㅎㅏ-ㅣ]' legal/html
+
+      - name: Commit generated files to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .legal-publish-pr-trigger/READY legal/PUBLISH_HTML
+          rmdir .legal-publish-pr-trigger 2>/dev/null || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A legal/html legal/PUBLISH_HTML .legal-publish-pr-trigger
+          git commit -m 'Publish verified external legal HTML [skip ci]'
+          git push origin HEAD:${{ github.head_ref }}
