@@ -1,0 +1,114 @@
+name: Publish FIX326 curated tutorial translations v8 corrected
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.fix326-i18n-trigger-v2/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix326-tutorial-i18n-v2-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-verify-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Add manually curated tutorial wording and publish v8
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+
+          KEYS = {
+              'main': 'hc_adfb1841afd01e670724',
+              'permissions': 'hc_5c0aed85a7f270960629',
+              'first_setup': 'hc_dfa126b34bfcb95b2ff1',
+              'quick': 'hc_429764d3a5ddb5ceeb47',
+              'limits': 'hc_49172299cae9c6b8fa13',
+              'study_stats': 'hc_1bcc2e40b132fa9905b4',
+          }
+          VALUES = {
+              'en': ['Main locking methods','Why these permissions are required','Initial setup steps','Quick lock','Time, app, and short-form limits','Study mode, statistics, and settings'],
+              'ko': ['주요 잠금 방식','필수 권한이 필요한 이유','처음 설정하는 순서','빠른 잠금','시간·앱·숏폼 제한','공신폰·통계·설정'],
+              'ja': ['主なロック方法','これらの権限が必要な理由','初回設定の手順','クイックロック','時間・アプリ・ショート動画の制限','集中スマホ・統計・設定'],
+              'zh-CN': ['主要锁定方式','为什么需要这些权限','首次设置步骤','快速锁定','使用时长、应用和短视频限制','专注手机、统计与设置'],
+              'zh-TW': ['主要鎖定方式','為什麼需要這些權限','初次設定步驟','快速鎖定','使用時間、應用程式與短影音限制','專注手機、統計與設定'],
+              'es': ['Métodos principales de bloqueo','Por qué se necesitan estos permisos','Pasos de la configuración inicial','Bloqueo rápido','Límites de tiempo, aplicaciones y vídeos cortos','Modo de estudio, estadísticas y ajustes'],
+              'fr': ['Principaux modes de verrouillage','Pourquoi ces autorisations sont nécessaires','Étapes de la configuration initiale','Verrouillage rapide','Limites de temps, d’applications et de vidéos courtes','Mode Études, statistiques et paramètres'],
+              'de': ['Wichtigste Sperrmethoden','Warum diese Berechtigungen erforderlich sind','Schritte der Ersteinrichtung','Schnellsperre','Zeit-, App- und Kurzvideo-Limits','Lernmodus, Statistiken und Einstellungen'],
+              'pt-BR': ['Principais formas de bloqueio','Por que essas permissões são necessárias','Etapas da configuração inicial','Bloqueio rápido','Limites de tempo, apps e vídeos curtos','Modo de estudo, estatísticas e configurações'],
+              'id': ['Metode penguncian utama','Mengapa izin ini diperlukan','Langkah penyiapan awal','Kunci cepat','Batas waktu, aplikasi, dan video pendek','Mode belajar, statistik, dan pengaturan'],
+              'vi': ['Các cách khóa chính','Vì sao cần các quyền này','Các bước thiết lập ban đầu','Khóa nhanh','Giới hạn thời gian, ứng dụng và video ngắn','Chế độ học tập, thống kê và cài đặt'],
+              'th': ['วิธีล็อกหลัก','เหตุผลที่ต้องใช้สิทธิ์เหล่านี้','ขั้นตอนการตั้งค่าครั้งแรก','ล็อกด่วน','จำกัดเวลา แอป และวิดีโอสั้น','โหมดเรียน สถิติ และการตั้งค่า'],
+          }
+          labels = list(KEYS)
+          manifest_path = Path('manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          assert set(manifest['languages']) == set(VALUES)
+          counts = set()
+
+          for tag, meta in manifest['languages'].items():
+              path = Path(meta['file'])
+              obj = json.loads(gzip.decompress(path.read_bytes()).decode('utf-8'))
+              translations = obj['translations']
+              for index, label in enumerate(labels):
+                  translations[KEYS[label]] = VALUES[tag][index]
+              counts.add(len(translations))
+              payload = {'schemaVersion':1,'locale':tag,'version':8,'translations':translations}
+              decoded = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+              encoded = gzip.compress(decoded, compresslevel=9, mtime=0)
+              path.write_bytes(encoded)
+              meta.update({'version':8,'sha256':hashlib.sha256(encoded).hexdigest(),'size':len(encoded),'translationCount':len(translations),'encoding':'gzip','uncompressedSize':len(decoded)})
+
+          assert len(counts) == 1, counts
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+          print(f'OK: published {len(VALUES)} curated v8 packs with {counts.pop()} translations each')
+          PY
+
+      - name: Verify curated v8 packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+          keys = ['hc_adfb1841afd01e670724','hc_5c0aed85a7f270960629','hc_dfa126b34bfcb95b2ff1','hc_429764d3a5ddb5ceeb47','hc_49172299cae9c6b8fa13','hc_1bcc2e40b132fa9905b4']
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          counts = set()
+          for tag, meta in manifest['languages'].items():
+              raw = Path(meta['file']).read_bytes()
+              decoded = gzip.decompress(raw)
+              obj = json.loads(decoded.decode('utf-8'))
+              assert obj['version'] == meta['version'] == 8
+              assert obj['locale'] == tag
+              assert hashlib.sha256(raw).hexdigest() == meta['sha256']
+              assert len(raw) == meta['size'] and len(decoded) == meta['uncompressedSize']
+              for key in keys: assert obj['translations'][key].strip()
+              assert len(obj['translations']) == meta['translationCount']
+              counts.add(len(obj['translations']))
+          assert len(counts) == 1
+          print('OK: all curated tutorial values and v8 hashes verified')
+          PY
+
+      - name: Commit v8 packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix326-i18n-trigger-v2 .fix326-i18n-trigger
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A manifest.json locales .fix326-i18n-trigger-v2 .fix326-i18n-trigger
+          git commit -m 'Publish FIX326 curated tutorial translations v8 [skip ci]'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
