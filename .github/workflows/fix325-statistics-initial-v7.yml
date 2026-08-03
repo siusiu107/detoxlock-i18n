@@ -1,0 +1,118 @@
+name: Publish FIX325 statistics language packs v7
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.fix325-i18n-trigger/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fix325-statistics-i18n-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  patch-verify-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Add translated statistics initial state and publish v7
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+
+          VALUES = {
+              'en': 'Today 0 times · 0 min\nTotal 0 times · 0 min',
+              'ko': '오늘 0회 · 0분\n누적 0회 · 0분',
+              'ja': '今日 0回 · 0分\n累計 0回 · 0分',
+              'zh-CN': '今天 0 次 · 0 分钟\n累计 0 次 · 0 分钟',
+              'zh-TW': '今天 0 次 · 0 分鐘\n累計 0 次 · 0 分鐘',
+              'es': 'Hoy 0 veces · 0 min\nTotal 0 veces · 0 min',
+              'fr': 'Aujourd’hui 0 fois · 0 min\nTotal 0 fois · 0 min',
+              'de': 'Heute 0-mal · 0 Min.\nGesamt 0-mal · 0 Min.',
+              'pt-BR': 'Hoje 0 vezes · 0 min\nTotal 0 vezes · 0 min',
+              'id': 'Hari ini 0 kali · 0 menit\nTotal 0 kali · 0 menit',
+              'vi': 'Hôm nay 0 lần · 0 phút\nTổng 0 lần · 0 phút',
+              'th': 'วันนี้ 0 ครั้ง · 0 นาที\nสะสม 0 ครั้ง · 0 นาที',
+          }
+          KEY = 'hc.stats_focus_initial_v7'
+          manifest_path = Path('manifest.json')
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          assert set(manifest['languages']) == set(VALUES)
+          expected_count = None
+
+          for tag, meta in manifest['languages'].items():
+              path = Path(meta['file'])
+              obj = json.loads(gzip.decompress(path.read_bytes()).decode('utf-8'))
+              translations = obj['translations']
+              translations[KEY] = VALUES[tag]
+              if expected_count is None:
+                  expected_count = len(translations)
+              assert len(translations) == expected_count, (tag, len(translations), expected_count)
+              payload = {
+                  'schemaVersion': 1,
+                  'locale': tag,
+                  'version': 7,
+                  'translations': translations,
+              }
+              decoded = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+              encoded = gzip.compress(decoded, compresslevel=9, mtime=0)
+              path.write_bytes(encoded)
+              meta.update({
+                  'version': 7,
+                  'sha256': hashlib.sha256(encoded).hexdigest(),
+                  'size': len(encoded),
+                  'translationCount': len(translations),
+                  'encoding': 'gzip',
+                  'uncompressedSize': len(decoded),
+              })
+
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+          print(f'OK: published {len(VALUES)} language packs as v7 with {expected_count} translations each')
+          PY
+
+      - name: Verify statistics translation packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          counts = set()
+          for tag, meta in manifest['languages'].items():
+              raw = Path(meta['file']).read_bytes()
+              decoded = gzip.decompress(raw)
+              obj = json.loads(decoded.decode('utf-8'))
+              assert obj['version'] == meta['version'] == 7, tag
+              assert obj['locale'] == tag
+              assert hashlib.sha256(raw).hexdigest() == meta['sha256']
+              assert len(raw) == meta['size']
+              assert len(decoded) == meta['uncompressedSize']
+              assert obj['translations']['hc.stats_focus_initial_v7'].strip()
+              assert len(obj['translations']) == meta['translationCount']
+              counts.add(len(obj['translations']))
+          assert len(counts) == 1, counts
+          print('OK: all statistics v7 packs and manifest hashes verified')
+          PY
+
+      - name: Commit v7 packs to PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix325-i18n-trigger
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A manifest.json locales .fix325-i18n-trigger
+          git commit -m 'Publish FIX325 statistics language packs v7 [skip ci]'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
