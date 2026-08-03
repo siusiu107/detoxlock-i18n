@@ -40,6 +40,22 @@ def find_language_matrix(value: Any) -> dict[str, Any] | None:
     return None
 
 
+def describe(value: Any, depth: int = 0) -> Any:
+    if depth >= 4:
+        return type(value).__name__
+    if isinstance(value, dict):
+        return {
+            "type": "dict",
+            "len": len(value),
+            "items": {str(key): describe(child, depth + 1) for key, child in list(value.items())[:4]},
+        }
+    if isinstance(value, list):
+        return {"type": "list", "len": len(value), "items": [describe(child, depth + 1) for child in value[:3]]}
+    if isinstance(value, str):
+        return {"type": "str", "len": len(value), "prefix": value[:80]}
+    return {"type": type(value).__name__, "value": value}
+
+
 def normalize_language(value: Any) -> dict[str, str]:
     if isinstance(value, list):
         result = {str(index): str(item) for index, item in enumerate(value)}
@@ -67,8 +83,7 @@ def load_verified_translations() -> dict[str, dict[str, str]]:
     payload = json.loads(decoded.decode("utf-8"))
     matrix = find_language_matrix(payload)
     if matrix is None:
-        top_keys = sorted(payload.keys()) if isinstance(payload, dict) else [type(payload).__name__]
-        raise RuntimeError(f"Language matrix not found; top-level keys={top_keys}")
+        raise RuntimeError("Language matrix not found; shape=" + json.dumps(describe(payload), ensure_ascii=False))
     return {tag: normalize_language(matrix[tag]) for tag in sorted(LANGUAGES)}
 
 
