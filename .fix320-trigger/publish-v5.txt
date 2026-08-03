@@ -1,0 +1,1 @@
+Publish the complete FIX320 exact and dynamic translation keys to every language pack and verify manifest hashes.
