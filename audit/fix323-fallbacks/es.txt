@@ -1,0 +1,15 @@
+hc.fxe_4cfa3d779844febb738c	YouTube Shorts
+hc.fxe_5955c19f40573ed3fb5c	Instagram Reels
+hc.fxp_c6b1aa156214fe3e213d	{1} min
+hc.hc_027145e50be61760b10c	EEEE
+hc.hc_1fda79ffb65973572d06	Widgets
+hc.hc_4431832428b09502b55b	0 min
+hc.hc_55b14f4c9674728a4872	Aurora
+hc.hc_70d778239ec01f63f841	Widgets
+hc.hc_86fc914661af134f5291	0 min
+hc.hc_8997e58a7f3f7f72aea5	15 min
+hc.hc_8d616d3509613e95aaa6	15 min
+hc.hc_e9de098c7733b1b9a6c9	Aurora
+hc.hc_fc24169d0fb48507ad16	30 min
+hc.hp_7f14d3a572d9aa0592da	{1} min
+res.permission_status_line	%1$s: %2$s

@@ -1,0 +1,28 @@
+hc.fxe_4cfa3d779844febb738c	YouTube Shorts
+hc.fxe_5955c19f40573ed3fb5c	Instagram Reels
+hc.hc_027145e50be61760b10c	EEEE
+hc.hc_1aacb54c499242964cc0	OK
+hc.hc_1fda79ffb65973572d06	Widgets
+hc.hc_2af93aeb435dff6322f5	Overlay
+hc.hc_38024a5899df53807292	Tutorials
+hc.hc_4f776c24ea483aea70f3	Offline
+hc.hc_565339bc4d33d72817b5	OK
+hc.hc_6f6047b4e26e6300ff03	Browser
+hc.hc_70d778239ec01f63f841	Widgets
+hc.hc_89dd748442c194857825	Apps
+hc.hc_8d9f66992dd4373c8f30	Tutorials
+hc.hc_920e413c7d411b61ef3e	Status
+hc.hc_a1794783aab72d205dc5	Offline
+hc.hc_b1f28cd21af730b22ed3	Start
+hc.hc_b2b6114fd6ef28f17e74	Apps
+hc.hc_d31de1a5c5c8ba2a210a	Browser
+hc.hc_e10195a1239fb321327b	Status
+hc.hc_e4bb9f1ece9af9264a3b	Start
+hc.hc_f06f033fd7c125a6ac26	Overlay
+hc.hp_bb83ac91fa132a05b8ca	Version  {1}
+res.action_confirm	OK
+res.action_support	Support
+res.gongshin_apps	Apps
+res.permission_status_line	%1$s: %2$s
+res.safe_mode_btn	OK
+res.settings_tutorials	Tutorials

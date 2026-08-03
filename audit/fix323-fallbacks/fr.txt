@@ -1,0 +1,26 @@
+hc.fxe_09f76a1b7a6712eeafef	Date
+hc.fxe_4cfa3d779844febb738c	YouTube Shorts
+hc.fxe_5955c19f40573ed3fb5c	Instagram Reels
+hc.fxe_67c1e932f9bc7bd77503	Contacts
+hc.fxp_435904becb6e7ac7a2d6	Page {1}
+hc.fxp_c6b1aa156214fe3e213d	{1} min
+hc.hc_027145e50be61760b10c	EEEE
+hc.hc_1aacb54c499242964cc0	OK
+hc.hc_1fda79ffb65973572d06	Widgets
+hc.hc_4431832428b09502b55b	0 min
+hc.hc_4f846a84e7fc9ef6e684	Minutes
+hc.hc_565339bc4d33d72817b5	OK
+hc.hc_70d778239ec01f63f841	Widgets
+hc.hc_86fc914661af134f5291	0 min
+hc.hc_8997e58a7f3f7f72aea5	15 min
+hc.hc_8d616d3509613e95aaa6	15 min
+hc.hc_ca4a187881dbf529d05e	Minutes
+hc.hc_f01a042bbfb3dad3690c	30 minutes
+hc.hc_fc24169d0fb48507ad16	30 min
+hc.hp_65573b60007619c17c54	Page {1}
+hc.hp_7f14d3a572d9aa0592da	{1} min
+hc.hp_bb83ac91fa132a05b8ca	Version  {1}
+hc.hp_faee55e5d4cc711a5381	Package  {1}
+res.action_confirm	OK
+res.btn_sms	Messages
+res.safe_mode_btn	OK
