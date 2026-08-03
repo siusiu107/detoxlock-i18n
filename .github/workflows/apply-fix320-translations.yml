@@ -24,9 +24,18 @@ jobs:
           set -euo pipefail
           mkdir -p .fix320
           curl --fail --location --retry 5 --retry-all-errors \
-            'https://raw.githubusercontent.com/siusiu107/debugapk/main/.fix320/generated_complete_translations.json' \
+            -H 'Accept: application/vnd.github.raw+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            'https://api.github.com/repos/siusiu107/debugapk/contents/.fix320/generated_complete_translations.json?ref=main' \
             -o .fix320/generated_complete_translations.json
           test -s .fix320/generated_complete_translations.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('.fix320/generated_complete_translations.json',encoding='utf-8'))
+          assert data['version'] == 5
+          assert data['exact'] and data['patterns']
+          print(data['stats'])
+          PY
       - name: Update and verify all language packs
         env:
           FIX320_TRANSLATIONS: ${{ github.workspace }}/.fix320/generated_complete_translations.json
