@@ -31,9 +31,12 @@ def load_verified_translations() -> dict[str, dict[str, str]]:
         assert hashlib.sha256(raw).hexdigest() == item["sha256"], item["file"]
         encoded.extend(raw)
     compressed = base64.b64decode(bytes(encoded), validate=False)
-    assert len(compressed) == manifest["decodedSize"]
-    assert hashlib.sha256(compressed).hexdigest() == manifest["decodedSha256"]
-    translations = json.loads(gzip.decompress(compressed).decode("utf-8"))
+    decoded = gzip.decompress(compressed)
+    # The manifest's decoded fields describe the uncompressed JSON payload,
+    # not the intermediate gzip byte stream.
+    assert len(decoded) == manifest["decodedSize"]
+    assert hashlib.sha256(decoded).hexdigest() == manifest["decodedSha256"]
+    translations = json.loads(decoded.decode("utf-8"))
     assert len(translations["ko"]) == 151
     return translations
 
