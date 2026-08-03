@@ -1,0 +1,126 @@
+name: Audit FIX323 language packs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.fix323-i18n-audit/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Audit every compressed language pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json, re
+
+          root = Path('.')
+          manifest_path = root / 'manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          languages = manifest['languages']
+          packs = {}
+          file_checks = {}
+          for tag, meta in languages.items():
+              path = root / meta['file']
+              raw = path.read_bytes()
+              decoded = gzip.decompress(raw)
+              data = json.loads(decoded.decode('utf-8'))
+              translations = data.get('translations', data)
+              assert isinstance(translations, dict), tag
+              packs[tag] = translations
+              file_checks[tag] = {
+                  'file': meta['file'],
+                  'manifestVersion': meta.get('version'),
+                  'manifestSha256': meta.get('sha256'),
+                  'actualSha256': hashlib.sha256(raw).hexdigest(),
+                  'manifestSize': meta.get('size'),
+                  'actualSize': len(raw),
+                  'manifestUncompressedSize': meta.get('uncompressedSize'),
+                  'actualUncompressedSize': len(decoded),
+                  'manifestTranslationCount': meta.get('translationCount'),
+                  'actualTranslationCount': len(translations),
+              }
+
+          en = packs['en']
+          all_keys = set(en)
+          report = {
+              'schemaVersion': 1,
+              'manifestMinAppVersionCode': manifest.get('minAppVersionCode'),
+              'englishKeyCount': len(en),
+              'fileChecks': file_checks,
+              'languages': {},
+          }
+          technical_exact = {
+              'DetoxLock','PIN','VPN','Wi-Fi','YouTube','Instagram','TikTok','Facebook',
+              'Netflix','Chrome','Google','Android','Samsung','Knox','One UI','SMS','OTP',
+              'FAQ','URL','ID','AI','APK','QR','NFC','Bluetooth','GPS','HTTP','HTTPS',
+              'MB','GB','KB','GHz','MHz','AM','PM','ON','OFF'
+          }
+          ascii_letters = re.compile(r'[A-Za-z]')
+          only_non_words = re.compile(r'^[\W\d_]+$', re.UNICODE)
+          for tag, values in packs.items():
+              keys = set(values)
+              missing = sorted(all_keys - keys)
+              extra = sorted(keys - all_keys)
+              empty = sorted(k for k, v in values.items() if not isinstance(v, str) or not v.strip())
+              same_as_en = []
+              ascii_only = []
+              for key in sorted(all_keys & keys):
+                  value = values[key]
+                  source = en[key]
+                  if not isinstance(value, str):
+                      continue
+                  stripped = value.strip()
+                  if tag not in {'en'} and stripped == str(source).strip():
+                      if stripped not in technical_exact and ascii_letters.search(stripped) and not only_non_words.match(stripped):
+                          same_as_en.append({'key': key, 'value': stripped})
+                  if tag not in {'en'} and stripped and stripped.isascii() and ascii_letters.search(stripped):
+                      if stripped not in technical_exact:
+                          ascii_only.append({'key': key, 'value': stripped})
+              report['languages'][tag] = {
+                  'keyCount': len(values),
+                  'missingKeys': missing,
+                  'extraKeys': extra,
+                  'emptyKeys': empty,
+                  'sameAsEnglish': same_as_en,
+                  'asciiOnlyValues': ascii_only,
+              }
+
+          (root / 'audit' / 'fix323-language-pack-audit.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8'
+          )
+          summary = []
+          for tag, info in report['languages'].items():
+              summary.append(
+                  f"{tag}: keys={info['keyCount']} missing={len(info['missingKeys'])} "
+                  f"empty={len(info['emptyKeys'])} same_en={len(info['sameAsEnglish'])} "
+                  f"ascii={len(info['asciiOnlyValues'])}"
+              )
+          (root / 'audit' / 'fix323-language-pack-audit.txt').write_text(
+              '\n'.join(summary) + '\n', encoding='utf-8'
+          )
+          print('\n'.join(summary))
+          PY
+
+      - name: Commit audit report
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix323-i18n-audit
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A audit .fix323-i18n-audit
+          git commit -m 'Audit FIX323 language packs [skip ci]'
+          git push origin HEAD:main
