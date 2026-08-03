@@ -1,0 +1,42 @@
+name: Apply FIX320 complete translations
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.fix320-trigger/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Download verified FIX320 generated translations
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .fix320
+          curl --fail --location --retry 5 --retry-all-errors \
+            'https://raw.githubusercontent.com/siusiu107/debugapk/main/.fix320/generated_complete_translations.json' \
+            -o .fix320/generated_complete_translations.json
+          test -s .fix320/generated_complete_translations.json
+      - name: Update and verify all language packs
+        env:
+          FIX320_TRANSLATIONS: ${{ github.workspace }}/.fix320/generated_complete_translations.json
+        run: python3 tools/apply_fix320_translations.py
+      - name: Commit all 12 packs and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manifest.json locales/*.json.gz FIX320_I18N_VERIFICATION.txt
+          git commit -m 'Publish complete FIX320 language packs v5'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
