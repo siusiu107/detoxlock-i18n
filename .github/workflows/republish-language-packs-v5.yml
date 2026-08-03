@@ -1,0 +1,118 @@
+name: Republish language packs v5
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.fix323-republish-v5/READY'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: republish-language-packs-v5
+  cancel-in-progress: false
+
+jobs:
+  republish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild every pack with version 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json, re
+
+          root = Path('.')
+          manifest_path = root / 'manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          manifest['schemaVersion'] = 1
+          manifest['minAppVersionCode'] = 56
+          target_version = 5
+          decoded_packs = {}
+
+          for tag, meta in manifest['languages'].items():
+              path = root / meta['file']
+              obj = json.loads(gzip.decompress(path.read_bytes()).decode('utf-8'))
+              translations = obj.get('translations', obj)
+              assert isinstance(translations, dict), tag
+              assert len(translations) == 2329, (tag, len(translations))
+              assert all(isinstance(k, str) and isinstance(v, str) and v.strip() for k, v in translations.items()), tag
+              decoded_packs[tag] = translations
+
+          english_keys = set(decoded_packs['en'])
+          placeholder = re.compile(r'%(?:\d+\$)?[-#+0,(]*\d*(?:\.\d+)?[a-zA-Z%]|\{\d+\}')
+          en_placeholders = {
+              key: sorted(placeholder.findall(value))
+              for key, value in decoded_packs['en'].items()
+          }
+          for tag, translations in decoded_packs.items():
+              assert set(translations) == english_keys, (tag, 'key set')
+              for key, value in translations.items():
+                  assert sorted(placeholder.findall(value)) == en_placeholders[key], (tag, key)
+
+          for tag, meta in manifest['languages'].items():
+              payload = {
+                  'schemaVersion': 1,
+                  'locale': tag,
+                  'version': target_version,
+                  'translations': decoded_packs[tag],
+              }
+              decoded = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+              # mtime=0 makes the gzip output reproducible.
+              encoded = gzip.compress(decoded, compresslevel=9, mtime=0)
+              path = root / meta['file']
+              path.write_bytes(encoded)
+              meta['version'] = target_version
+              meta['sha256'] = hashlib.sha256(encoded).hexdigest()
+              meta['size'] = len(encoded)
+              meta['translationCount'] = len(decoded_packs[tag])
+              meta['encoding'] = 'gzip'
+              meta['uncompressedSize'] = len(decoded)
+
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, separators=(',', ':')) + '\n',
+              encoding='utf-8'
+          )
+          print('Republished', len(manifest['languages']), 'language packs at version', target_version)
+          PY
+
+      - name: Verify manifest and regenerated files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, json
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          assert manifest['minAppVersionCode'] <= 57
+          for tag, meta in manifest['languages'].items():
+              raw = Path(meta['file']).read_bytes()
+              decoded = gzip.decompress(raw)
+              obj = json.loads(decoded.decode('utf-8'))
+              assert meta['version'] == 5, tag
+              assert obj['version'] == 5, tag
+              assert obj['locale'] == tag, tag
+              assert hashlib.sha256(raw).hexdigest() == meta['sha256'], tag
+              assert len(raw) == meta['size'], tag
+              assert len(decoded) == meta['uncompressedSize'], tag
+              assert len(obj['translations']) == meta['translationCount'] == 2329, tag
+          print('OK: all v5 packs and manifest metadata verified')
+          PY
+
+      - name: Commit v5 packs
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix323-republish-v5
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A manifest.json locales .fix323-republish-v5
+          git commit -m 'Republish complete language packs as v5 [skip ci]'
+          git push origin HEAD:main
