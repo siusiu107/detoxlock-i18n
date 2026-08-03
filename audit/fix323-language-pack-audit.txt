@@ -1,0 +1,12 @@
+en: keys=2329 missing=0 empty=0 same_en=0 ascii=0
+ko: keys=2329 missing=0 empty=0 same_en=3 ascii=2
+ja: keys=2329 missing=0 empty=0 same_en=8 ascii=7
+zh-CN: keys=2329 missing=0 empty=0 same_en=4 ascii=3
+zh-TW: keys=2329 missing=0 empty=0 same_en=4 ascii=3
+es: keys=2329 missing=0 empty=0 same_en=16 ascii=802
+fr: keys=2329 missing=0 empty=0 same_en=27 ascii=470
+de: keys=2329 missing=0 empty=0 same_en=29 ascii=1156
+pt-BR: keys=2329 missing=0 empty=0 same_en=28 ascii=740
+id: keys=2329 missing=0 empty=0 same_en=31 ascii=2126
+vi: keys=2329 missing=0 empty=0 same_en=9 ascii=27
+th: keys=2329 missing=0 empty=0 same_en=5 ascii=6
