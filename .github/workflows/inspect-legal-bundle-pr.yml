@@ -1,0 +1,55 @@
+name: Inspect legal bundle PR
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.legal-inspect-trigger/**'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode verified bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p diagnostic
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib, json
+          root = Path('legal')
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          encoded = bytearray()
+          for item in manifest['parts']:
+              raw = (root / item['file']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == item['sha256']
+              assert len(raw) == item['size']
+              encoded.extend(raw)
+          compressed = base64.b64decode(bytes(encoded), validate=False)
+          assert len(compressed) == manifest['decodedSize']
+          assert hashlib.sha256(compressed).hexdigest() == manifest['decodedSha256']
+          decoded = gzip.decompress(compressed)
+          Path('diagnostic/legal_documents.json').write_bytes(decoded)
+          document = json.loads(decoded.decode('utf-8'))
+          candidates = []
+          def walk(value, path=()):
+              if isinstance(value, dict):
+                  for key, child in value.items(): walk(child, path + (str(key),))
+              elif isinstance(value, list):
+                  for index, child in enumerate(value): walk(child, path + (str(index),))
+              elif isinstance(value, str) and ('<html' in value.lower() or '<!doctype html' in value.lower()):
+                  candidates.append({'path': list(path), 'bytes': len(value.encode('utf-8')), 'prefix': value[:160]})
+          walk(document)
+          Path('diagnostic/candidates.json').write_text(json.dumps(candidates, ensure_ascii=False, indent=2), encoding='utf-8')
+          print('candidates', len(candidates))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legal-bundle-diagnostic
+          path: diagnostic
+          retention-days: 2
