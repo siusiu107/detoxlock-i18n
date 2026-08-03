@@ -1,0 +1,58 @@
+name: Emit FIX323 English fallback lists
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.fix323-fallback-report/READY'
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Write one readable report per language
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, json, re
+
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          packs = {}
+          for tag, meta in manifest['languages'].items():
+              obj = json.loads(gzip.decompress(Path(meta['file']).read_bytes()).decode('utf-8'))
+              packs[tag] = obj.get('translations', obj)
+          en = packs['en']
+          out = Path('audit/fix323-fallbacks')
+          out.mkdir(parents=True, exist_ok=True)
+          technical = {'DetoxLock','PIN','VPN','Wi-Fi','Wi‑Fi','YouTube','Instagram','TikTok','Facebook','Netflix','Chrome','Google','Android','Samsung','Knox','One UI','SMS','OTP','FAQ','URL','ID','AI','APK','QR','NFC','Bluetooth','GPS','HTTP','HTTPS','MB','GB','KB','GHz','MHz','AM','PM','ON','OFF'}
+          for tag, values in packs.items():
+              if tag == 'en':
+                  continue
+              rows = []
+              for key in sorted(en):
+                  value = str(values.get(key, '')).strip()
+                  source = str(en[key]).strip()
+                  if value == source and value not in technical and re.search(r'[A-Za-z]', value):
+                      rows.append(f'{key}\t{value}')
+              (out / f'{tag}.txt').write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
+          PY
+
+      - name: Commit readable reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .fix323-fallback-report
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A audit/fix323-fallbacks .fix323-fallback-report
+          git commit -m 'Publish FIX323 English fallback lists [skip ci]'
+          git push origin HEAD:main
