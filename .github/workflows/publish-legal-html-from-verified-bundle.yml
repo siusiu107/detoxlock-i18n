@@ -1,0 +1,98 @@
+name: Publish legal HTML from verified bundle
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'legal/PUBLISH_HTML'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-verified-legal-html
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decode verified legal translations and render HTML
+        shell: bash
+        env:
+          TERMS_TEMPLATE_GZIP_BASE64: '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'
+          PRIVACY_TEMPLATE_GZIP_BASE64: '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'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, hashlib, html, json, os, re
+
+          root = Path('legal')
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          encoded = bytearray()
+          for item in manifest['parts']:
+              raw = (root / item['file']).read_bytes()
+              assert len(raw) == item['size'], item['file']
+              assert hashlib.sha256(raw).hexdigest() == item['sha256'], item['file']
+              encoded.extend(raw)
+          compressed = base64.b64decode(bytes(encoded), validate=False)
+          assert len(compressed) == manifest['decodedSize']
+          assert hashlib.sha256(compressed).hexdigest() == manifest['decodedSha256']
+          translations = json.loads(gzip.decompress(compressed).decode('utf-8'))
+          assert len(translations['ko']) == 151
+
+          templates = {
+              'terms_of_service': gzip.decompress(base64.b64decode(os.environ['TERMS_TEMPLATE_GZIP_BASE64'])).decode('utf-8'),
+              'privacy_policy': gzip.decompress(base64.b64decode(os.environ['PRIVACY_TEMPLATE_GZIP_BASE64'])).decode('utf-8'),
+          }
+          dates = {
+              'ja':'2026年6月27日','zh-CN':'2026年6月27日','zh-TW':'2026年6月27日',
+              'es':'27 de junio de 2026','fr':'27 juin 2026','de':'27. Juni 2026',
+              'pt-BR':'27 de junho de 2026','id':'27 Juni 2026',
+              'vi':'27 tháng 6 năm 2026','th':'27 มิถุนายน 2026',
+          }
+          tags = ['ja','zh-CN','zh-TW','es','fr','de','pt-BR','id','vi','th']
+          out = root / 'html'
+          out.mkdir(parents=True, exist_ok=True)
+          for old in out.glob('*.html'):
+              old.unlink()
+
+          placeholder = re.compile(r'\{\{T(\d+)\}\}')
+          hangul = re.compile(r'[가-힣ㄱ-ㅎㅏ-ㅣ]')
+          for tag in tags:
+              assert len(translations[tag]) == 151
+              for base_name, template in templates.items():
+                  rendered = template.replace('lang="ko"', f'lang="{tag}"', 1)
+                  def replace(match):
+                      value = translations[tag][match.group(1)].strip()
+                      value = value.replace('2026년 6월 27일', dates[tag])
+                      assert value
+                      return html.escape(value, quote=False)
+                  rendered = placeholder.sub(replace, rendered)
+                  assert '{{T' not in rendered
+                  assert not hangul.search(rendered), (tag, base_name)
+                  target = out / f'{base_name}.{tag}.html'
+                  target.write_text(rendered, encoding='utf-8')
+                  assert target.stat().st_size > 4000
+          files = sorted(out.glob('*.html'))
+          assert len(files) == 20, len(files)
+          print('Published', len(files), 'external legal HTML documents')
+          PY
+
+      - name: Commit rendered documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f legal/PUBLISH_HTML
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A legal/html legal/PUBLISH_HTML
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified external legal HTML [skip ci]'
+            git push origin HEAD:main
+          fi
