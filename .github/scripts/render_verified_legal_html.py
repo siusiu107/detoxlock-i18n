@@ -8,10 +8,12 @@ import hashlib
 import html
 import json
 import re
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 LEGAL = ROOT / "legal"
 WORKFLOW = ROOT / ".github" / "workflows" / "publish-legal-html-from-verified-bundle.yml"
+LANGUAGES = {"ko", "en", "ja", "zh-CN", "zh-TW", "es", "fr", "de", "pt-BR", "id", "vi", "th"}
 
 
 def template_from_workflow(variable: str) -> str:
@@ -20,6 +22,34 @@ def template_from_workflow(variable: str) -> str:
     if not match:
         raise RuntimeError(f"Missing embedded template: {variable}")
     return gzip.decompress(base64.b64decode(match.group(1))).decode("utf-8")
+
+
+def find_language_matrix(value: Any) -> dict[str, Any] | None:
+    if isinstance(value, dict):
+        if LANGUAGES.issubset(value.keys()):
+            return value
+        for child in value.values():
+            found = find_language_matrix(child)
+            if found is not None:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = find_language_matrix(child)
+            if found is not None:
+                return found
+    return None
+
+
+def normalize_language(value: Any) -> dict[str, str]:
+    if isinstance(value, list):
+        result = {str(index): str(item) for index, item in enumerate(value)}
+    elif isinstance(value, dict):
+        result = {str(key): str(item) for key, item in value.items()}
+    else:
+        raise TypeError(type(value).__name__)
+    assert len(result) == 151, len(result)
+    assert all(result[str(index)].strip() for index in range(151))
+    return result
 
 
 def load_verified_translations() -> dict[str, dict[str, str]]:
@@ -32,13 +62,14 @@ def load_verified_translations() -> dict[str, dict[str, str]]:
         encoded.extend(raw)
     compressed = base64.b64decode(bytes(encoded), validate=False)
     decoded = gzip.decompress(compressed)
-    # The manifest's decoded fields describe the uncompressed JSON payload,
-    # not the intermediate gzip byte stream.
     assert len(decoded) == manifest["decodedSize"]
     assert hashlib.sha256(decoded).hexdigest() == manifest["decodedSha256"]
-    translations = json.loads(decoded.decode("utf-8"))
-    assert len(translations["ko"]) == 151
-    return translations
+    payload = json.loads(decoded.decode("utf-8"))
+    matrix = find_language_matrix(payload)
+    if matrix is None:
+        top_keys = sorted(payload.keys()) if isinstance(payload, dict) else [type(payload).__name__]
+        raise RuntimeError(f"Language matrix not found; top-level keys={top_keys}")
+    return {tag: normalize_language(matrix[tag]) for tag in sorted(LANGUAGES)}
 
 
 def main() -> None:
@@ -68,14 +99,12 @@ def main() -> None:
     placeholder = re.compile(r"\{\{T(\d+)\}\}")
     hangul = re.compile(r"[가-힣ㄱ-ㅎㅏ-ㅣ]")
     for tag in tags:
-        assert len(translations[tag]) == 151
         for base_name, template in templates.items():
             rendered = template.replace('lang="ko"', f'lang="{tag}"', 1)
 
             def replace(match: re.Match[str]) -> str:
                 value = translations[tag][match.group(1)].strip()
                 value = value.replace("2026년 6월 27일", dates[tag])
-                assert value
                 return html.escape(value, quote=False)
 
             rendered = placeholder.sub(replace, rendered)
