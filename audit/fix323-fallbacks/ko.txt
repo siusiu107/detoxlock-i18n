@@ -1,2 +1,0 @@
-hc.fxp_10b52a062bd473e395ff	Support UID: {1}
-res.permission_status_line	%1$s: %2$s
