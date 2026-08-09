@@ -12,7 +12,12 @@ Unsupported device/app locales fall back to English in DetoxLock. The Android pr
 
 - `manifest.json`: language versions, paths and SHA-256 hashes
 - `locales/*.json.gz`: one downloadable language pack per supported locale
-- `legal/html/*.id.html`: Indonesian remote legal documents; English/Korean legal fallbacks are bundled with the app
+- `legal/html/*.ko.html`: Korean remote legal documents
+- `legal/html/*.id.html`: Indonesian remote legal documents
+
+English legal HTML is the only legal fallback bundled in the app. Korean and
+Indonesian legal pages are downloaded remotely and safely fall back to English if
+the remote document is unavailable.
 
 The app verifies every downloaded pack against the SHA-256 value in the manifest and keeps the last valid local copy for offline use.
 
