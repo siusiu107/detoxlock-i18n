@@ -1,40 +1,40 @@
 {
   "schemaVersion": 1,
   "defaultLocale": "en",
-  "minAppVersionCode": 99,
+  "minAppVersionCode": 100,
   "languages": {
     "en": {
       "nativeName": "English",
       "englishName": "English",
-      "version": 12,
+      "version": 13,
       "file": "locales/en.json.gz",
-      "sha256": "e0fda97a129b87a7faee2ce9547f050dfe212a92f438d56fdc16231fb632f652",
-      "size": 66002,
-      "translationCount": 2372,
+      "sha256": "4b0648ce3859d88142dd6dab65d5fcb40fe93a3df814a59de7f9ae0df46358d9",
+      "size": 66253,
+      "translationCount": 2374,
       "encoding": "gzip",
-      "uncompressedSize": 189233
+      "uncompressedSize": 190385
     },
     "ko": {
       "nativeName": "한국어",
       "englishName": "Korean",
-      "version": 12,
+      "version": 13,
       "file": "locales/ko.json.gz",
-      "sha256": "279de33f076200447fcf6a8db124938370de8676ef9c16f41f363bf42e8a171c",
-      "size": 67079,
-      "translationCount": 2372,
+      "sha256": "012574672ff5e0f554d062616f71ddd46f8e17a4cb30eb66b7d7446b195b845b",
+      "size": 67281,
+      "translationCount": 2374,
       "encoding": "gzip",
-      "uncompressedSize": 201053
+      "uncompressedSize": 202194
     },
     "id": {
       "nativeName": "Bahasa Indonesia",
       "englishName": "Indonesian",
-      "version": 13,
+      "version": 14,
       "file": "locales/id.json.gz",
-      "sha256": "7f2f71655ba4236e2a731c6073595b4df1ca69f26137064d3cbce7ea5ded30ec",
-      "size": 65697,
-      "translationCount": 2372,
+      "sha256": "145304ab5475e4a868a29e76da1c363f3ff817fe371585eaac7c42b8e3ba92d2",
+      "size": 65932,
+      "translationCount": 2374,
       "encoding": "gzip",
-      "uncompressedSize": 203003
+      "uncompressedSize": 204366
     }
   }
 }
