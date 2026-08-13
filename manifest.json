@@ -6,35 +6,35 @@
     "en": {
       "nativeName": "English",
       "englishName": "English",
-      "version": 15,
+      "version": 16,
       "file": "locales/en.json.gz",
-      "sha256": "e3e06675aad76e48599e97b0551d60a9944982122f9814176c1039db42fe6618",
-      "size": 68997,
-      "translationCount": 2484,
+      "sha256": "7dd81ce2e58101340dec6b3b0e37d58170c9a6dfd86d5c6abd9a02f7c025a5c2",
+      "size": 69683,
+      "translationCount": 2534,
       "encoding": "gzip",
-      "uncompressedSize": 200530
+      "uncompressedSize": 203378
     },
     "ko": {
       "nativeName": "한국어",
       "englishName": "Korean",
-      "version": 15,
+      "version": 16,
       "file": "locales/ko.json.gz",
-      "sha256": "9d5c2b0f69da184acd1e1844bf0b61efb2e8d612a8e81e35f460f6d18c93abe4",
-      "size": 70209,
-      "translationCount": 2484,
+      "sha256": "a8fa1c70f7c2de7769c27523c09d875816fcad2981fb2c4e749032b132816aed",
+      "size": 70911,
+      "translationCount": 2534,
       "encoding": "gzip",
-      "uncompressedSize": 213202
+      "uncompressedSize": 216349
     },
     "id": {
       "nativeName": "Bahasa Indonesia",
       "englishName": "Indonesian",
-      "version": 16,
+      "version": 17,
       "file": "locales/id.json.gz",
-      "sha256": "9a5744dc849a766df9f28b388d4fe6c0f05aeb27f346ccde78765f6c1a11aaa4",
-      "size": 68584,
-      "translationCount": 2484,
+      "sha256": "0b4bbe768b2f62b2e827aaee033b9de609d3b45cb2e579757dc7f9213d97e3bc",
+      "size": 69288,
+      "translationCount": 2534,
       "encoding": "gzip",
-      "uncompressedSize": 214820
+      "uncompressedSize": 217812
     }
   }
 }
