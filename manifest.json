@@ -17,24 +17,32 @@
     "ko": {
       "nativeName": "한국어",
       "englishName": "Korean",
-      "version": 16,
+      "version": 17,
+      "baseVersion": 16,
       "file": "locales/ko.json.gz",
       "sha256": "a8fa1c70f7c2de7769c27523c09d875816fcad2981fb2c4e749032b132816aed",
       "size": 70911,
-      "translationCount": 2534,
+      "translationCount": 2597,
       "encoding": "gzip",
-      "uncompressedSize": 216349
+      "uncompressedSize": 216349,
+      "overrideFile": "locales/ko.polish-v18.override.json",
+      "overrideSha256": "3ed09b2045b7ef993755bbdd3c275e98eff471444d695e8188bf2930e080c3fe",
+      "overrideSize": 5854
     },
     "id": {
       "nativeName": "Bahasa Indonesia",
       "englishName": "Indonesian",
-      "version": 17,
+      "version": 18,
+      "baseVersion": 17,
       "file": "locales/id.json.gz",
       "sha256": "0b4bbe768b2f62b2e827aaee033b9de609d3b45cb2e579757dc7f9213d97e3bc",
       "size": 69288,
-      "translationCount": 2534,
+      "translationCount": 2597,
       "encoding": "gzip",
-      "uncompressedSize": 217812
+      "uncompressedSize": 217812,
+      "overrideFile": "locales/id.polish-v18.override.json",
+      "overrideSha256": "c9779076b5a3d547d55c6ae2b3d5fd2637e2b225fc7aa66e38f3784e9c9455f9",
+      "overrideSize": 5498
     }
   }
 }
