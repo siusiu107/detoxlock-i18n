@@ -27,7 +27,11 @@
       "uncompressedSize": 216349,
       "overrideFile": "locales/ko.polish-v18.override.json",
       "overrideSha256": "3ed09b2045b7ef993755bbdd3c275e98eff471444d695e8188bf2930e080c3fe",
-      "overrideSize": 5854
+      "overrideSize": 5854,
+      "postOverrideFile": "locales/ko.fix421.override.json",
+      "postOverrideSha256": "774d42cfdfd0cf1fe87a0c1f4107f4218314115d98e1aafce2f4d87f06021852",
+      "postOverrideSize": 1270,
+      "postOverrideRequiredKey": "hc.fxe_00f29389c76fc0682189"
     },
     "id": {
       "nativeName": "Bahasa Indonesia",
@@ -42,7 +46,11 @@
       "uncompressedSize": 217812,
       "overrideFile": "locales/id.polish-v18.override.json",
       "overrideSha256": "c9779076b5a3d547d55c6ae2b3d5fd2637e2b225fc7aa66e38f3784e9c9455f9",
-      "overrideSize": 5498
+      "overrideSize": 5498,
+      "postOverrideFile": "locales/id.fix421.override.json",
+      "postOverrideSha256": "00158ead17be55b2d8b73a6227830769915d65d8fe1810dea268db2e71d6ce67",
+      "postOverrideSize": 1222,
+      "postOverrideRequiredKey": "hc.fxe_00f29389c76fc0682189"
     }
   }
 }
