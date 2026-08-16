@@ -22,3 +22,7 @@ the remote document is unavailable.
 The app verifies every downloaded pack against the SHA-256 value in the manifest and keeps the last valid local copy for offline use.
 
 Language packs are gzip-compressed. The app verifies the compressed file hash before decompressing it.
+
+## UI string sync rule
+
+Any new user-facing menu label, button text, guide text, or status message added to DetoxLock must be updated for `en`, `ko`, and `id` in the same change. English remains bundled in the app for safe fallback; Korean and Indonesian runtime additions are mirrored here through the manifest/override pipeline. FIX421 permission-guide additions are stored in `locales/*.fix421.override.json`.
