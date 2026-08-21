@@ -1,0 +1,57 @@
+{
+  "version": 7,
+  "videos": {
+    "ko": {
+      "01_accessibility.mp4": {
+        "bytes": 662047,
+        "sha256": "2e7df38618842788661de0d53f820ae629cf9aae06ec8bcd62be9c3a3c9cd849"
+      },
+      "02_usage_access.mp4": {
+        "bytes": 282784,
+        "sha256": "12358e87b2398b214b5df2d886fba2437bc2cf2487385806ea3beaab0c46e691"
+      },
+      "03_display_over_apps.mp4": {
+        "bytes": 278595,
+        "sha256": "80e478260af4c65566214d91d7949eb881a7912191e988f0c9c416f97cf45b6e"
+      },
+      "04_vpn.mp4": {
+        "bytes": 286458,
+        "sha256": "9147ba6384ab20d467766d4abb9e0fef1162ffd023e6cc91a84a629084190cac"
+      },
+      "05_battery_optimization.mp4": {
+        "bytes": 206313,
+        "sha256": "cc0a678c8562894d0b717f4aaa5ff220749fe1690fa9be5c42f31a130d750c27"
+      },
+      "06_device_admin.mp4": {
+        "bytes": 417381,
+        "sha256": "06f6068f2fb9db2d00922245ca41a6696873beba079b96bc5512337df9630263"
+      }
+    },
+    "id": {
+      "01_accessibility.mp4": {
+        "bytes": 402363,
+        "sha256": "08628bd067d93ade1693c95bd8671c504df1565a6bbf23bd8d0de8af63e5c545"
+      },
+      "02_usage_access.mp4": {
+        "bytes": 66365,
+        "sha256": "e5439ccf788ced0ec1e5028c0ea3a044d406c63a149e6881275ce6d9f7b91de3"
+      },
+      "03_display_over_apps.mp4": {
+        "bytes": 73525,
+        "sha256": "5c429a160780f2cc63bd1f71c225b66887f62234c660d16688ee040e5dd49b87"
+      },
+      "04_vpn.mp4": {
+        "bytes": 55379,
+        "sha256": "aff3af43aef939a72faa38e33f2ef99abe047c3919648fbc6541e5d1df171bd0"
+      },
+      "05_battery_optimization.mp4": {
+        "bytes": 42742,
+        "sha256": "022a995ec529bb3bba390b82c44419e911979f7e1a6454fb3a7674a0a69a58fa"
+      },
+      "06_device_admin.mp4": {
+        "bytes": 79088,
+        "sha256": "47ff6bbb7a02cbcf14f4f2ec224aaf7e5be70270e342c5fa2d4ad71f98cb23b3"
+      }
+    }
+  }
+}

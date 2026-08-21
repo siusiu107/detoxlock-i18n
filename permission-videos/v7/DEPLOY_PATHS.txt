@@ -1,0 +1,16 @@
+Repository: siusiu107/detoxlock-i18n
+Branch: main
+Copy these paths without renaming:
+  permission-videos/v7/ko/01_accessibility.mp4
+  permission-videos/v7/ko/02_usage_access.mp4
+  permission-videos/v7/ko/03_display_over_apps.mp4
+  permission-videos/v7/ko/04_vpn.mp4
+  permission-videos/v7/ko/05_battery_optimization.mp4
+  permission-videos/v7/ko/06_device_admin.mp4
+  permission-videos/v7/id/01_accessibility.mp4
+  permission-videos/v7/id/02_usage_access.mp4
+  permission-videos/v7/id/03_display_over_apps.mp4
+  permission-videos/v7/id/04_vpn.mp4
+  permission-videos/v7/id/05_battery_optimization.mp4
+  permission-videos/v7/id/06_device_admin.mp4
+The Android app verifies exact byte length + SHA-256 and falls back to bundled English if remote delivery fails.
