@@ -1,0 +1,85 @@
+name: Deploy FIX436 permission videos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'DetoxLock_FIX436_v3.0.119_final_permission_videos_2160x1620.zip'
+      - '.github/workflows/deploy-fix436-permission-videos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract exact KO/ID v7 permission videos
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP='DetoxLock_FIX436_v3.0.119_final_permission_videos_2160x1620.zip'
+          test -s "$ZIP"
+
+          rm -rf .fix436-extract
+          mkdir -p .fix436-extract
+          unzip -q "$ZIP" -d .fix436-extract
+
+          SRC='.fix436-extract/DetoxLock/translation_repository_patch/permission-videos/v7'
+          test -f "$SRC/manifest.json"
+          test -d "$SRC/ko"
+          test -d "$SRC/id"
+
+          rm -rf permission-videos/v7
+          mkdir -p permission-videos/v7
+          cp -a "$SRC/." permission-videos/v7/
+
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+
+          root = Path('permission-videos/v7')
+          expected = {
+              'ko/01_accessibility.mp4': ('2e7df38618842788661de0d53f820ae629cf9aae06ec8bcd62be9c3a3c9cd849', 662047),
+              'ko/02_usage_access.mp4': ('12358e87b2398b214b5df2d886fba2437bc2cf2487385806ea3beaab0c46e691', 282784),
+              'ko/03_display_over_apps.mp4': ('80e478260af4c65566214d91d7949eb881a7912191e988f0c9c416f97cf45b6e', 278595),
+              'ko/04_vpn.mp4': ('9147ba6384ab20d467766d4abb9e0fef1162ffd023e6cc91a84a629084190cac', 286458),
+              'ko/05_battery_optimization.mp4': ('cc0a678c8562894d0b717f4aaa5ff220749fe1690fa9be5c42f31a130d750c27', 206313),
+              'ko/06_device_admin.mp4': ('06f6068f2fb9db2d00922245ca41a6696873beba079b96bc5512337df9630263', 417381),
+              'id/01_accessibility.mp4': ('08628bd067d93ade1693c95bd8671c504df1565a6bbf23bd8d0de8af63e5c545', 402363),
+              'id/02_usage_access.mp4': ('e5439ccf788ced0ec1e5028c0ea3a044d406c63a149e6881275ce6d9f7b91de3', 66365),
+              'id/03_display_over_apps.mp4': ('5c429a160780f2cc63bd1f71c225b66887f62234c660d16688ee040e5dd49b87', 73525),
+              'id/04_vpn.mp4': ('aff3af43aef939a72faa38e33f2ef99abe047c3919648fbc6541e5d1df171bd0', 55379),
+              'id/05_battery_optimization.mp4': ('022a995ec529bb3bba390b82c44419e911979f7e1a6454fb3a7674a0a69a58fa', 42742),
+              'id/06_device_admin.mp4': ('47ff6bbb7a02cbcf14f4f2ec224aaf7e5be70270e342c5fa2d4ad71f98cb23b3', 79088),
+          }
+
+          for rel, (sha, size) in expected.items():
+              p = root / rel
+              data = p.read_bytes()
+              actual_sha = hashlib.sha256(data).hexdigest()
+              if len(data) != size or actual_sha != sha:
+                  raise SystemExit(f'Integrity mismatch: {rel} size={len(data)} sha={actual_sha}')
+              print(f'PASS {rel} {size} {sha}')
+
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          print('manifest loaded:', manifest.get('version', manifest.get('schemaVersion', 'ok')))
+          PY
+
+      - name: Commit deployed v7 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add permission-videos/v7
+          if git diff --cached --quiet; then
+            echo 'No permission video changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Deploy FIX436 KO/ID permission videos v7'
+          git push
